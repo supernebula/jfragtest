@@ -11,6 +11,7 @@
     <modules>
         <module>concurrent-test</module>
         <module>datatype-test</module>
+        <module>objectclass-test</module>
     </modules>
 
     <properties>
@@ -37,6 +38,11 @@
                 <groupId>org.junit.vintage</groupId>
                 <artifactId>junit-vintage-engine</artifactId>
                 <version>5.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.8</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
