@@ -11,6 +11,9 @@ public class Entity {
     @Column("title")
     private String title;
 
+    @Column("number")
+    private int number;
+
     @Column("create_time")
     private Date createTime;
 
