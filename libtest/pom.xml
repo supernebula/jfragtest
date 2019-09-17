@@ -12,6 +12,7 @@
         <module>concurrent-test</module>
         <module>datatype-test</module>
         <module>objectclass-test</module>
+        <module>annotate-test</module>
     </modules>
 
     <properties>
