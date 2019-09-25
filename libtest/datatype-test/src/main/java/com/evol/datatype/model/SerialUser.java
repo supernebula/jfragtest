@@ -1,5 +1,7 @@
 package com.evol.datatype.model;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,5 +15,7 @@ public class SerialUser implements Serializable {
     private Double money;
     private boolean enabled;
     private GenderEnum gender;
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 }
