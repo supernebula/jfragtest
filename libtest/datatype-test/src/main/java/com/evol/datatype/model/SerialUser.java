@@ -14,6 +14,7 @@ public class SerialUser implements Serializable {
     private int age;
     private Double money;
     private boolean enabled;
+    private boolean actived;
     private GenderEnum gender;
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
