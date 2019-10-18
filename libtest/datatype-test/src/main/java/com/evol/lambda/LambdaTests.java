@@ -1,8 +1,6 @@
-package com.evol.sugar;
+package com.evol.lambda;
 
-import com.evol.datatype.model.PayModeEnum;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class LambdaTests {
 
@@ -11,5 +9,11 @@ public class LambdaTests {
     public void lambdaTest(){
 
         new Thread(() -> System.out.print("lambda")).run();
+    }
+
+    @Test
+    public void customeLambdaTest(){
+
+        new ServiceRequest().Request((int num) -> System.out.print(num), 199);
     }
 }
