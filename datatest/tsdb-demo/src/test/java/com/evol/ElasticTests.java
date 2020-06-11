@@ -154,7 +154,7 @@ public class ElasticTests {
     public void insertEbikePower(EBikePower eBikePower) throws InterruptedException {
         String measurement = "ebike_power";
 
-        influxDB.setDatabase("ddcx");
+        influxDB.setDatabase("dddd");
 
         influxDB.write(Point.measurement(measurement)
                 .tag("device_number", eBikePower.getDeviceNumber())

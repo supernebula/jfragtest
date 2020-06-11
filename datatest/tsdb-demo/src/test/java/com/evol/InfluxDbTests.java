@@ -31,7 +31,7 @@ public class InfluxDbTests {
     @Value("${spring.influx.url}")
     private String url;
 
-    private String databaseName = "ddcx";
+    private String databaseName = "dddd";
 
 
 
