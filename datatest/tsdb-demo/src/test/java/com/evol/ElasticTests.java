@@ -3,6 +3,7 @@ package com.evol;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.evol.domain.AcSTA;
 import com.evol.domain.EBikePower;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -81,8 +82,10 @@ public class ElasticTests {
         long startTime = LocalDateTime.of(2020, 4, 1, 0, 0 , 0).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         long endTime = LocalDateTime.of(2020, 6, 12, 0, 0 , 0).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         boolQueryBuilder.must( QueryBuilders.rangeQuery("createTime").from(startTime).to(endTime))
-                .must(QueryBuilders.matchPhraseQuery("name", "STA"))
-                .must(QueryBuilders.matchPhraseQuery("deviceNumber", "141700"));
+                .must(QueryBuilders.matchPhraseQuery("name", "CARSTA"))
+                .must(QueryBuilders.matchPhraseQuery("deviceNumber", "139442"));
+//                .must(QueryBuilders.matchPhraseQuery("name", "STA"))
+//                .must(QueryBuilders.matchPhraseQuery("deviceNumber", "141700"));
 
 
         //sourceBuilder.query(boolQueryBuilder).sort(fieldSortBuilder);//多条件查询
@@ -105,8 +108,15 @@ public class ElasticTests {
                 if(StringUtils.startsWith(sourceAsString, "STA")){
                     continue;
                 }
+
+                if(StringUtils.startsWith(sourceAsString, "CARSTA")){
+                    continue;
+                }
                 try {
-                    insertTs((String) jsonObject.get("msg"), (long)jsonObject.get("queneTime"));
+                    //电瓶车桩
+                    //eBikeSTAinsertTs((String) jsonObject.get("msg"), (long)jsonObject.get("queneTime"));
+                    //汽车交流桩
+                    acCarSTAinsertTs((String) jsonObject.get("msg"), (long)jsonObject.get("queneTime"));
                 }catch (InterruptedException e){
                     e.printStackTrace();
                 }catch (Exception ex1){
@@ -126,8 +136,82 @@ public class ElasticTests {
         System.out.println(result);
     }
 
+    //region 交流汽车方案
 
-    private void insertTs(String eBikeSTA, long queneTime) throws InterruptedException {
+    private void acCarSTAinsertTs(String carSTA, long queneTime) throws InterruptedException {
+        String staInstruct = carSTA;
+        String[] parameters = StringUtils.split(staInstruct, '#');
+        String deviceNumber = parameters[0];
+        String instruct = parameters[1];
+        int ac = NumberUtils.toInt(parameters[2]);
+        List<AcSTA> eBikePowers = new ArrayList<>();
+        for (int i = 3; i < parameters.length; i++){
+            String[] roadParams = StringUtils.split(parameters[i], ':');
+            AcSTA item = new AcSTA();
+            item.setDeviceNumber(deviceNumber);
+            item.setInstruct(instruct);
+            item.setRoad(roadParams[0]);
+            item.setAc(ac);
+            item.setCurrent(NumberUtils.toInt(roadParams[1]));
+            item.setPower(NumberUtils.toInt(roadParams[2]));
+            item.setNowDeg(NumberUtils.toInt(roadParams[3]));
+            item.setStartDeg(NumberUtils.toInt(roadParams[4]));
+            item.setUseDeg(NumberUtils.toInt(roadParams[5]));
+            item.setRemainingTime(NumberUtils.toInt(roadParams[6]));
+            item.setTemperature1(NumberUtils.toInt(roadParams[7]));
+            item.setTemperature2(NumberUtils.toInt(roadParams[8]));
+            item.setCpVoltage(NumberUtils.toInt(roadParams[9]));
+
+            String transId = roadParams[10];
+            if(NumberUtils.isDigits(transId)){
+                item.setCardKey("");
+                item.setOrderId(transId);
+            }else{
+                item.setCardKey(transId);
+                item.setOrderId("");
+            }
+            item.setTime(queneTime);
+            insertCarSTA(item);
+        }
+    }
+
+
+
+    public void insertCarSTA(AcSTA acSTA) throws InterruptedException {
+        String measurement = "car_ac_sta";
+
+        influxDB.setDatabase("dddd");
+
+        influxDB.write(Point.measurement(measurement)
+                .tag("device_number", acSTA.getDeviceNumber())
+                .tag("instruct", acSTA.getInstruct())
+                .tag("road", acSTA.getRoad())
+                .tag("cardKey", acSTA.getCardKey())
+                .tag("orderId", acSTA.getOrderId())
+
+                .addField("ac", acSTA.getAc())
+                .addField("current", acSTA.getCurrent())
+                .addField("power", acSTA.getPower())
+                .addField("nowDeg", acSTA.getNowDeg())
+                .addField("startDeg", acSTA.getStartDeg())
+                .addField("useDeg", acSTA.getUseDeg())
+                .addField("remainingTime", acSTA.getRemainingTime())
+                .addField("temperature1", acSTA.getTemperature1())
+                .addField("temperature2", acSTA.getTemperature2())
+                .addField("cpVoltage", acSTA.getCpVoltage())
+                .time(acSTA.getTime(), TimeUnit.MILLISECONDS)
+                .build());
+
+
+
+    }
+
+    //endregion
+
+
+    //region 电动车STA
+
+    private void eBikeSTAinsertTs(String eBikeSTA, long queneTime) throws InterruptedException {
         String staInstruct = eBikeSTA;
         String[] parameters = StringUtils.split(staInstruct, '#');
         String deviceNumber = parameters[0];
@@ -166,5 +250,7 @@ public class ElasticTests {
 
 
     }
+
+    //endregion
 
 }
