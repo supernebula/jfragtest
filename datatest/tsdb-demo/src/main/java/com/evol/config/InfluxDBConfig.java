@@ -1,10 +1,13 @@
 package com.evol.config;
 
+import okhttp3.OkHttpClient;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class InfluxDBConfig {
@@ -23,6 +26,9 @@ public class InfluxDBConfig {
     private String retentionPolicy;
 
     private InfluxDB influxDB;
+
+    static OkHttpClient.Builder client = new OkHttpClient.Builder()
+            .readTimeout(200, TimeUnit.SECONDS);
 
     public InfluxDBConfig() {
 
@@ -43,7 +49,7 @@ public class InfluxDBConfig {
 
     private void build(){
         if(influxDB == null){
-            influxDB = InfluxDBFactory.connect(this.url,this.userName,this.password);
+            influxDB = InfluxDBFactory.connect(this.url,this.userName,this.password, client);
         }
         influxDB.setDatabase(this.database);
         influxDB.setLogLevel(InfluxDB.LogLevel.BASIC);

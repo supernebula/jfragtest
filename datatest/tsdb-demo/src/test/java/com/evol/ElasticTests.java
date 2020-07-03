@@ -70,7 +70,20 @@ public class ElasticTests {
     }
 
     @Test
+    public void multiSearchTest() throws InterruptedException {
+        for (int i = 1; i <= 900; i++){
+            search(i);
+            Thread.sleep(10 * 1000);
+        }
+    }
+
+
+    @Test
     public void searchTest(){
+        search(1);
+    }
+
+    public void search(int page){
         String result = "none";
         SearchRequest searchRequest = new SearchRequest("device_instruct_log");
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
@@ -82,8 +95,8 @@ public class ElasticTests {
         long startTime = LocalDateTime.of(2020, 4, 1, 0, 0 , 0).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         long endTime = LocalDateTime.of(2020, 6, 12, 0, 0 , 0).toInstant(ZoneOffset.of("+8")).toEpochMilli();
         boolQueryBuilder.must( QueryBuilders.rangeQuery("createTime").from(startTime).to(endTime))
-                .must(QueryBuilders.matchPhraseQuery("name", "CARSTA"))
-                .must(QueryBuilders.matchPhraseQuery("deviceNumber", "139442"));
+                .must(QueryBuilders.matchPhraseQuery("name", "CARSTA"));
+               // .must(QueryBuilders.matchPhraseQuery("deviceNumber", "139442"));
 //                .must(QueryBuilders.matchPhraseQuery("name", "STA"))
 //                .must(QueryBuilders.matchPhraseQuery("deviceNumber", "141700"));
 
@@ -91,7 +104,8 @@ public class ElasticTests {
         //sourceBuilder.query(boolQueryBuilder).sort(fieldSortBuilder);//多条件查询
         sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         sourceBuilder.query(boolQueryBuilder);
-        sourceBuilder.size(10000);
+        sourceBuilder.from(page * 9000);
+        sourceBuilder.size(9000);
         searchRequest.source(sourceBuilder);
         try {
             SearchResponse response = esHighClient.search(searchRequest, RequestOptions.DEFAULT);
@@ -130,6 +144,8 @@ public class ElasticTests {
             result = "查询失败";
         } catch (NullPointerException ex){
             ex.printStackTrace();
+        } catch (Exception ex1){
+            ex1.printStackTrace();
         }
 
 
@@ -180,7 +196,7 @@ public class ElasticTests {
     public void insertCarSTA(AcSTA acSTA) throws InterruptedException {
         String measurement = "car_ac_sta";
 
-        influxDB.setDatabase("dddd");
+        influxDB.setDatabase("ddcx");
 
         influxDB.write(Point.measurement(measurement)
                 .tag("device_number", acSTA.getDeviceNumber())
@@ -238,7 +254,7 @@ public class ElasticTests {
     public void insertEbikePower(EBikePower eBikePower) throws InterruptedException {
         String measurement = "ebike_power";
 
-        influxDB.setDatabase("dddd");
+        influxDB.setDatabase("ddcx");
 
         influxDB.write(Point.measurement(measurement)
                 .tag("device_number", eBikePower.getDeviceNumber())
