@@ -1,12 +1,14 @@
 package com.evol;
 
 import com.evol.domain.AcSTA;
-import com.evol.domain.model.AccessAuditLog;
+import com.evol.domain.model.RequetLog;
 import com.evol.model.CarAcStatus;
 import com.evol.model.CarAcStatusSmall;
 import com.evol.util.TimeMonitor;
 import org.apache.commons.lang3.StringUtils;
+import org.influxdb.BatchOptions;
 import org.influxdb.InfluxDB;
+import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
@@ -121,7 +123,7 @@ public class InfluxDbTests {
     }
 
     @Test
-    public void mutliInsertTest(){
+    public void mutliSelectAndInsertTest(){
         TimeMonitor.run(() -> {
             for(int i = 0; i < 90000; i++){
                 selectAndInsertPointTest();
@@ -235,17 +237,17 @@ public class InfluxDbTests {
     @Test
     public void  insertPojoTest() throws InterruptedException {
 
-        for (int i = 0; i < 1000000; i ++){
+        for (int i = 0; i < 100000; i ++){
 
 
 
-            AccessAuditLog log = new AccessAuditLog();
+            RequetLog log = new RequetLog();
             log.setClientIp("127.0.0.1");
             log.setServerName("DDCX-ORDER-SERVER");
             log.setPath("/tenant/test");
             log.setElapsedMilli((new Random(System.currentTimeMillis()).nextInt(1500)));
 
-            Point point = Point.measurementByPOJO(AccessAuditLog.class)
+            Point point = Point.measurementByPOJO(RequetLog.class)
                     .addFieldsFromPOJO(log)
                     .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
                     .build();
@@ -254,6 +256,108 @@ public class InfluxDbTests {
 
             Thread.sleep(200);
         }
+
+
+
+
+    }
+
+    @Test
+    public void batchInsertPojoTimeTest(){
+        TimeMonitor.run(() -> {
+            try {
+                batchInsertPojoTest();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+    }
+    @Test
+    public void  batchInsertPojoTest() throws InterruptedException {
+
+        influxDB.setDatabase("ddcx");
+        influxDB.enableBatch(BatchOptions.DEFAULTS);
+
+
+        for (int i = 0; i < 9000; i ++){
+
+
+            RequetLog log = new RequetLog();
+            log.setClientIp("127.0.0.1");
+            log.setServerName("LOCAL_TEST");
+            log.setPath("/tenant/test");
+            log.setElapsedMilli((new Random(System.currentTimeMillis()).nextInt(1500)));
+
+            Point point = Point.measurementByPOJO(RequetLog.class)
+                    .addFieldsFromPOJO(log)
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .build();
+
+            influxDB.write(point);
+
+
+
+//            String pointLine = Point.measurementByPOJO(RequetLog.class)
+//                    .addFieldsFromPOJO(log)
+//                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+//                    .build().lineProtocol();
+//
+//            influxDB.write(pointLine);
+
+            //Thread.sleep(200);
+        }
+
+
+
+
+
+
+    }
+
+
+    @Test
+    public void  batchInsertPojoTest2() throws InterruptedException {
+
+        influxDB.setDatabase("ddcx");
+
+        BatchPoints batchPoints = BatchPoints
+                .database("ddcx")
+                .retentionPolicy("default")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
+
+
+
+        for (int i = 0; i < 100000; i ++){
+
+
+            RequetLog log = new RequetLog();
+            log.setClientIp("127.0.0.1");
+            log.setServerName("LOCAL_TEST");
+            log.setPath("/tenant/test");
+            log.setElapsedMilli((new Random(System.currentTimeMillis()).nextInt(1500)));
+
+            Point point = Point.measurementByPOJO(RequetLog.class)
+                    .addFieldsFromPOJO(log)
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+                    .build();
+
+            batchPoints.point(point);
+
+
+
+//            String pointLine = Point.measurementByPOJO(RequetLog.class)
+//                    .addFieldsFromPOJO(log)
+//                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
+//                    .build().lineProtocol();
+//
+//            influxDB.write(pointLine);
+
+            //Thread.sleep(200);
+        }
+
+        influxDB.write(batchPoints);
 
 
 

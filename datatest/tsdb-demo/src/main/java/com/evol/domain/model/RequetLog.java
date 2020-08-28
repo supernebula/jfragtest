@@ -9,8 +9,8 @@ import org.influxdb.annotation.Measurement;
  * 最近10次访问时间
  */
 @Data
-@Measurement(name = "access_audit_log")
-public class AccessAuditLog {
+@Measurement(name = "request_log")
+public class RequetLog {
 
     @JSONField(name = "server_name")
     @Column(name = "server_name", tag = true)

@@ -52,7 +52,7 @@ public class InfluxDBConfig {
             influxDB = InfluxDBFactory.connect(this.url,this.userName,this.password, client);
         }
         influxDB.setDatabase(this.database);
-        influxDB.setLogLevel(InfluxDB.LogLevel.BASIC);
+        influxDB.setLogLevel(InfluxDB.LogLevel.HEADERS);
     }
 
     @Bean
