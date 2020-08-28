@@ -20,6 +20,11 @@ public class GenericTests {
         Node.doPrint("message1");
     }
 
+    public void JavaTest(){
+
+
+    }
+
 
 
 }
